@@ -7,7 +7,7 @@
 #include "heat_listener.h"
 #include "./mqtt/mqtt_listener.h"
 
-class Heat {
+class Heat : public MqttListener {
 private:
     int pin;
     String mqtt_topic;

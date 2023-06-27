@@ -18,12 +18,10 @@ public:
     Mqtt(PubSubClient *client);
     void onHeatEvent(bool isTurnedOn);
     void connect(String user, String pass, String server, int port);
-    static void callback(char *topic, byte *payload, unsigned int length);
     void addListener(MqttListener *listener);
     void removeListener(MqttListener *listener);
 
 private:
-    static Mqtt* instance; // Add this line
 
     WiFiClientSecure *espClient;
 
@@ -47,5 +45,7 @@ private:
     static void eventTask(void *param); // Static task function for event handling
     void run();                         // Event handling task function
 };
+
+void callback(char *topic, byte *payload, unsigned int length);
 
 #endif

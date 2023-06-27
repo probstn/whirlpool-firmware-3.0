@@ -2,7 +2,6 @@
 
 Mqtt::Mqtt(PubSubClient *client)
 {
-    instance = this; // Add this line
     this->client = client;
     Serial.println("Mqtt");
     eventQueue = xQueueCreate(10, sizeof(bool));                                        // Create a queue to hold event data
@@ -20,8 +19,8 @@ void Mqtt::eventTask(void *param)
 
     while (true)
     {
-        mqtt->run();        
-        client->loop(); // Run the event handling task function
+        mqtt->run();
+        mqtt->client->loop();
         vTaskDelay(pdMS_TO_TICKS(100)); // Delay of 100 milliseconds
     }
 }
@@ -35,14 +34,23 @@ void Mqtt::run()
         // Perform event handling logic here
         // You can access the value of `isTurnedOn
         // and perform actions accordingly
-        Serial.println("Mqtt Event: " + String(isTurnedOn));
+        Serial.println("Mqtt Event from Heating: " + String(isTurnedOn));
     }
 }
 
 void Mqtt::connect(String user, String pass, String server, int port)
 {
     client->setServer(server.c_str(), port);
-    client->setCallback(Mqtt::callback);
+    // client->setCallback(callback);
+    client->setCallback([&](char *topic, byte *payload, unsigned int length){
+        String incommingMessage = "";
+        for (int i = 0; i < length; i++)
+            incommingMessage += (char)payload[i];
+        //--- check the incomming message
+        Serial.println("[MQTT] Message arrived [" + String(topic) + "]: " + incommingMessage);
+        // handle message
+        fireMessageEvent(String(topic), incommingMessage);
+    });
 
     while (!client->connected()) {
 
@@ -71,17 +79,15 @@ void Mqtt::connect(String user, String pass, String server, int port)
         }
 }
 
-void Mqtt::callback(char *topic, byte *payload, unsigned int length)
+void callback(char *topic, byte *payload, unsigned int length)
 {
     String incommingMessage = "";
     for (int i = 0; i < length; i++)
         incommingMessage += (char)payload[i];
     //--- check the incomming message
     Serial.println("[MQTT] Message arrived [" + String(topic) + "]: " + incommingMessage);
-    if (instance != nullptr)
-    {
-        instance->fireMessageEvent(String(topic), incommingMessage);
-    }
+    // handle message
+    
 }
 
 void Mqtt::addListener(MqttListener *listener)

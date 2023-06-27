@@ -1,21 +1,27 @@
 // main.cpp
 #include <Arduino.h>
+#include <PubSubClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include "heat/heat.h"
 #include "test/test.h"
-#include "heat/heat_listener.h"
+#include "mqtt/mqtt.h"
 
-Test test;
-Heat heat(2);
+#define MQTT_TOPIC "probst/outdoor/whirlpool/isHeating"
+
+PubSubClient client;
+WiFiClientSecure secureClient;
+
+Heat heat(2, MQTT_TOPIC);
+Mqtt mqtt(&client);
+
 
 void setup() {
     Serial.begin(115200);
-    heat.addListener(&test);
+    heat.addListener(&mqtt);
 }
 
 void loop() {
-    // Your main loop code here
     heat.turnOn();
     delay(1000);
     heat.turnOff();

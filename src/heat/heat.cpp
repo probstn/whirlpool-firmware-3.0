@@ -52,4 +52,3 @@ void Heat::onMqttEvent(String topic, String message) {
         }
     }
 }
-
